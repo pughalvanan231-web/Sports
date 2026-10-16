@@ -15,7 +15,8 @@
   },
   "overrides": {
     "rolldown": "1.2.1",
-    "unstorage": "^1.14.4"
+    "unstorage": "^1.14.4",
+    "postcss": "8.5.25"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
