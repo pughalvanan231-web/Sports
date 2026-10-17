@@ -177,6 +177,14 @@ export type PrintSize = "58mm" | "80mm" | "A4" | "label";
 let printNode: ReactNode = null;
 const pl = new Set<() => void>();
 
+export function clearDynamicPrintStyles() {
+  if (typeof document === "undefined") return;
+  const styleEl = document.getElementById("dynamic-print-page");
+  if (styleEl) {
+    styleEl.remove();
+  }
+}
+
 export function setDynamicPageSize(size: PrintSize = "58mm") {
   if (typeof document === "undefined") return;
   let styleEl = document.getElementById("dynamic-print-page") as HTMLStyleElement | null;
@@ -189,51 +197,59 @@ export function setDynamicPageSize(size: PrintSize = "58mm") {
   if (size === "label") {
     // 2-inch thermal sticker label (50mm x 30mm / 2" x 1.2")
     styleEl.textContent = `
-      @page {
-        size: 50mm 30mm !important;
-        margin: 0mm !important;
-      }
-      html, body {
-        width: 50mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
+      @media print {
+        @page {
+          size: 50mm 30mm !important;
+          margin: 0mm !important;
+        }
+        html, body {
+          width: 50mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
       }
     `;
   } else if (size === "58mm") {
     // 2-inch thermal POS roll (58mm continuous roll)
     styleEl.textContent = `
-      @page {
-        size: 58mm auto !important;
-        margin: 0mm !important;
-      }
-      html, body {
-        width: 58mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
+      @media print {
+        @page {
+          size: 58mm auto !important;
+          margin: 0mm !important;
+        }
+        html, body {
+          width: 58mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
       }
     `;
   } else if (size === "80mm") {
     // 3-inch thermal POS roll (80mm continuous roll)
     styleEl.textContent = `
-      @page {
-        size: 80mm auto !important;
-        margin: 0mm !important;
-      }
-      html, body {
-        width: 80mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
+      @media print {
+        @page {
+          size: 80mm auto !important;
+          margin: 0mm !important;
+        }
+        html, body {
+          width: 80mm !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
       }
     `;
   } else {
     // Standard A4 full sheet
     styleEl.textContent = `
-      @page {
-        size: A4 portrait !important;
-        margin: 6mm 8mm !important;
-      }
-      html, body {
-        width: 100% !important;
+      @media print {
+        @page {
+          size: A4 portrait !important;
+          margin: 6mm 8mm !important;
+        }
+        html, body {
+          width: 100% !important;
+        }
       }
     `;
   }
@@ -246,6 +262,10 @@ export function printContent(node: ReactNode, size: PrintSize = "58mm") {
   // Short timeout allows React portal to paint and SVGs/Barcodes to layout before browser captures print snapshot
   setTimeout(() => {
     window.print();
+    // Safety cleanup timeout in case browser does not trigger afterprint event
+    setTimeout(() => {
+      clearDynamicPrintStyles();
+    }, 1500);
   }, 180);
 }
 
@@ -266,10 +286,14 @@ export function PrintArea() {
     setMounted(true);
     const onAfterPrint = () => {
       printNode = null;
+      clearDynamicPrintStyles();
       pl.forEach((l) => l());
     };
     window.addEventListener("afterprint", onAfterPrint);
-    return () => window.removeEventListener("afterprint", onAfterPrint);
+    return () => {
+      window.removeEventListener("afterprint", onAfterPrint);
+      clearDynamicPrintStyles();
+    };
   }, []);
 
   if (!mounted || !node || typeof document === "undefined") return null;
