@@ -390,7 +390,6 @@ export function TaxInvoiceA4({ sale, settings }: { sale: Sale; settings: Setting
                   <td className="py-3 px-3 text-center font-medium text-slate-400">{idx + 1}</td>
                   <td className="py-3 px-3">
                     <p className="font-bold text-slate-900">{item.name}</p>
-                    <p className="text-[10px] text-slate-400">SKU: {item.productId.toUpperCase()}</p>
                   </td>
                   <td className="py-3 px-3 text-center font-mono text-slate-600">9506</td>
                   <td className="py-3 px-3 text-right font-medium text-slate-700">{formatCurrency(item.price)}</td>

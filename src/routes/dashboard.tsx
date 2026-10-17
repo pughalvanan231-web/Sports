@@ -256,7 +256,7 @@ function DashboardPage() {
                   >
                     <div className="min-w-0 pr-2">
                       <p className="font-semibold text-foreground truncate">{p.name}</p>
-                      <p className="text-muted-foreground">{p.category} · {p.sku}</p>
+                      <p className="text-muted-foreground">{p.category} {p.barcode ? `· ${p.barcode}` : ""}</p>
                     </div>
                     <Pill tone="danger">Out of stock</Pill>
                   </div>
@@ -268,7 +268,7 @@ function DashboardPage() {
                   >
                     <div className="min-w-0 pr-2">
                       <p className="font-semibold text-foreground truncate">{p.name}</p>
-                      <p className="text-muted-foreground">{p.category} · {p.sku}</p>
+                      <p className="text-muted-foreground">{p.category} {p.barcode ? `· ${p.barcode}` : ""}</p>
                     </div>
                     <Pill tone="warning">{p.stock} left</Pill>
                   </div>

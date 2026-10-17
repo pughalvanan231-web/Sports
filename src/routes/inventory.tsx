@@ -183,7 +183,7 @@ function Inventory() {
               <thead className="border-b border-slate-100 bg-slate-50/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                 <tr>
                   {th("name", "Product", "px-6 py-4")}
-                  <th className="px-4 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">SKU</th>
+                  <th className="px-4 py-4 font-bold text-slate-400 uppercase tracking-wider text-[11px]">Barcode</th>
                   {th("category", "Category", "px-4 py-4")}
                   {th("price", "Selling Price", "px-4 py-4")}
                   {th("stock", "Stock", "px-4 py-4")}
@@ -200,7 +200,7 @@ function Inventory() {
                       </span>
                     </td>
                     <td className="px-4 py-4 font-mono text-xs text-slate-500">
-                      {p.sku}
+                      {p.barcode || "—"}
                     </td>
                     <td className="px-4 py-4 text-slate-600">
                       {p.category}
@@ -373,15 +373,13 @@ function ProductModal({ product, categories, onClose }: { product: Product; cate
   const save = () => {
     const e: Record<string, string> = {};
     if (!f.name.trim()) e["name"] = "Product name is required";
-    if (!f.sku.trim()) e["sku"] = "SKU is required";
-    else if (all.some((p) => p.sku === f.sku && p.id !== f.id)) e["sku"] = "SKU already used";
     if (!f.category.trim()) e["category"] = "Category is required";
     if (f.price <= 0) e["price"] = "Price must be more than 0";
     if (f.cost < 0) e["cost"] = "Cost cannot be negative";
     if (f.barcode && all.some((p) => p.barcode === f.barcode && p.id !== f.id)) e["barcode"] = "Barcode already used by another product";
     setErrors(e);
     if (Object.keys(e).length) return;
-    const next = { ...f, id: f.id || uid(), barcode: f.barcode || genBarcode() };
+    const next = { ...f, id: f.id || uid(), sku: f.sku || f.barcode || uid(), barcode: f.barcode || genBarcode() };
     update((d) => ({ ...d, products: f.id ? d.products.map((p) => (p.id === f.id ? next : p)) : [...d.products, next] }));
     toast.success(f.id ? "Product updated" : "Product added");
     onClose();
@@ -403,8 +401,7 @@ function ProductModal({ product, categories, onClose }: { product: Product; cate
         <DialogHeader><DialogTitle>{f.id ? "Edit product" : "Add product"}</DialogTitle></DialogHeader>
         <form id="form-product" className="space-y-5" onSubmit={(e) => { e.preventDefault(); save(); }}>
           <fieldset className="grid gap-3 sm:grid-cols-2"><legend className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">Basic info</legend>
-            <div className="sm:col-span-2">{F({ id: "prod-name", label: "Name", k: "name" })}</div>
-            {F({ id: "prod-sku", label: "SKU", k: "sku" })}
+            <div>{F({ id: "prod-name", label: "Product Name", k: "name" })}</div>
             <div>
               <label htmlFor="prod-category" className="text-sm font-medium">Category</label>
               <div className="relative mt-1">

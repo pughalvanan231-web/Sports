@@ -219,7 +219,7 @@ export function BarcodeScannerModal({
                 POS Barcode Scanner
               </DialogTitle>
               <p className="text-xs text-slate-400">
-                Real-time optical scanner for Code 128, EAN, UPC, and SKU barcodes.
+                Real-time optical scanner for Code 128, EAN, and UPC product barcodes.
               </p>
             </div>
           </div>
@@ -351,7 +351,7 @@ export function BarcodeScannerModal({
                   ref={inputRef}
                   value={manualCode}
                   onChange={(e) => setManualCode(e.target.value)}
-                  placeholder="Scan barcode gun or enter barcode / SKU..."
+                  placeholder="Scan barcode gun or enter barcode number..."
                   className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-10 pr-4 text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
                 />
               </div>
@@ -410,13 +410,13 @@ export function BarcodeScannerModal({
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => processBarcode(p.barcode || p.sku)}
+                  onClick={() => processBarcode(p.barcode || "")}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                 >
                   <Barcode className="size-3 text-slate-400" />
                   <span className="truncate max-w-[120px] font-semibold">{p.name}</span>
                   <span className="font-mono text-[10px] text-slate-400">
-                    {p.barcode ? p.barcode.slice(-4) : p.sku}
+                    {p.barcode ? p.barcode.slice(-4) : ""}
                   </span>
                 </button>
               ))}

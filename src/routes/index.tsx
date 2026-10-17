@@ -258,7 +258,7 @@ function BillingPage() {
 
     // Product not found
     playScannerBeep("error");
-    const errMsg = `Barcode / SKU "${cleaned}" not found in products catalog.`;
+    const errMsg = `Barcode "${cleaned}" not found in products catalog.`;
     setLastError(errMsg);
     toast.error(errMsg, { duration: 4000 });
     return false;
@@ -499,7 +499,7 @@ function BillingPage() {
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Scan with handheld scanner gun, camera, or type product barcode/SKU below.
+                Scan with handheld scanner gun, camera, or type product barcode below.
               </p>
             </div>
           </div>
@@ -530,7 +530,7 @@ function BillingPage() {
               value={barcodeInput}
               autoComplete="off"
               onChange={(e) => setBarcodeInput(e.target.value)}
-              placeholder="Zap barcode with scanner gun, or type barcode / SKU (e.g. 1234)..."
+              placeholder="Zap barcode with scanner gun, or enter barcode..."
               className="h-11 w-full rounded-xl border border-blue-300 bg-white pl-10 pr-20 text-sm font-mono font-medium text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-4 focus:ring-blue-100"
             />
             {barcodeInput && (
@@ -626,7 +626,7 @@ function BillingPage() {
                 handleScanSubmit();
               }
             }}
-            placeholder="Search products by name, SKU or barcode..."
+            placeholder="Search products by name or barcode..."
             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
           />
         </div>
@@ -727,7 +727,7 @@ function BillingPage() {
                   <thead className="border-b border-slate-100 bg-slate-50/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                     <tr>
                       <th className="px-6 py-4">Product</th>
-                      <th className="px-4 py-4">SKU / Barcode</th>
+                      <th className="px-4 py-4">Barcode</th>
                       <th className="px-4 py-4">Category</th>
                       <th className="px-4 py-4">Selling Price</th>
                       <th className="px-4 py-4">Stock</th>
@@ -755,12 +755,11 @@ function BillingPage() {
                             </span>
                           </td>
 
-                          {/* SKU & BARCODE */}
+                          {/* BARCODE */}
                           <td className="px-4 py-4">
-                            <p className="font-mono text-xs font-semibold text-slate-800">{p.sku}</p>
-                            <div className="flex items-center gap-1.5 mt-1">
-                              <span className="font-mono text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1">
-                                <Barcode className="size-3 text-slate-400" />
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs font-semibold text-slate-800 bg-slate-100 px-2 py-1 rounded inline-flex items-center gap-1.5">
+                                <Barcode className="size-3.5 text-slate-400" />
                                 <span>{p.barcode || "No Barcode"}</span>
                               </span>
                               {p.barcode && (
@@ -858,8 +857,8 @@ function BillingPage() {
                   >
                     <div>
                       <div className="flex items-center justify-between text-xs text-slate-400">
-                        <span>{p.category}</span>
-                        <span className="font-mono">{p.sku}</span>
+                        <span className="font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">{p.category}</span>
+                        {p.barcode && <span className="font-mono text-[11px] text-slate-400">#{p.barcode.slice(-4)}</span>}
                       </div>
                       <p className="mt-1.5 line-clamp-2 min-h-10 text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                         {p.name}
