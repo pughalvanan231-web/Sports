@@ -207,15 +207,15 @@ export function BarcodeScannerModal({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-xl rounded-3xl p-0 overflow-hidden border border-slate-200 bg-white shadow-2xl">
+      <DialogContent className="max-w-xl max-h-[90vh] flex flex-col rounded-3xl p-0 overflow-hidden border border-slate-200 bg-white shadow-2xl [&>button:last-child]:hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50/60">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-3.5 bg-slate-50/70 shrink-0">
           <div className="flex items-center gap-3">
             <div className="grid size-10 place-items-center rounded-xl bg-blue-600 text-white shadow-sm shadow-blue-500/30">
               <Scan className="size-5" />
             </div>
             <div>
-              <DialogTitle className="text-lg font-bold text-slate-900">
+              <DialogTitle className="text-base sm:text-lg font-bold text-slate-900">
                 POS Barcode Scanner
               </DialogTitle>
               <p className="text-xs text-slate-400">
@@ -225,7 +225,7 @@ export function BarcodeScannerModal({
           </div>
 
           <div className="flex items-center gap-2">
-            <label className="flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 cursor-pointer hover:bg-slate-50 transition-colors">
+            <label className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 cursor-pointer hover:bg-slate-50 transition-colors shadow-xs">
               <input
                 type="checkbox"
                 checked={continuousMode}
@@ -234,13 +234,23 @@ export function BarcodeScannerModal({
               />
               <span>Crowd Mode</span>
             </label>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="grid size-8 place-items-center rounded-xl bg-slate-200/80 hover:bg-red-50 text-slate-600 hover:text-red-600 transition-colors border border-slate-300/60 shadow-xs"
+              title="Close Scanner (Esc)"
+              aria-label="Close Scanner"
+            >
+              <X className="size-4 stroke-[2.5]" />
+            </button>
           </div>
         </div>
 
         {/* Viewport: Real-time Camera Scanner View */}
-        <div className="p-6 space-y-5">
+        <div className="p-4 sm:p-5 space-y-3.5 flex-1 overflow-y-auto min-h-0">
           {/* Camera Frame */}
-          <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-slate-950 flex flex-col items-center justify-center text-white shadow-inner">
+          <div className="relative h-44 sm:h-48 w-full overflow-hidden rounded-2xl bg-slate-950 flex flex-col items-center justify-center text-white shadow-inner shrink-0">
             <video
               ref={videoRef}
               playsInline
@@ -255,23 +265,23 @@ export function BarcodeScannerModal({
             <div className="pointer-events-none absolute inset-0 grid place-items-center">
               <div
                 className={cn(
-                  "relative size-56 sm:size-64 rounded-2xl border-2 transition-all duration-300",
+                  "relative size-36 sm:size-40 rounded-2xl border-2 transition-all duration-300",
                   scanCooldown
                     ? "border-emerald-400 bg-emerald-500/15 shadow-[0_0_30px_rgba(52,211,153,0.4)]"
                     : "border-blue-400/90 bg-transparent"
                 )}
               >
                 {/* 4 Corner Markers */}
-                <div className="absolute -top-1 -left-1 size-5 border-t-4 border-l-4 border-blue-400 rounded-tl-lg" />
-                <div className="absolute -top-1 -right-1 size-5 border-t-4 border-r-4 border-blue-400 rounded-tr-lg" />
-                <div className="absolute -bottom-1 -left-1 size-5 border-b-4 border-l-4 border-blue-400 rounded-bl-lg" />
-                <div className="absolute -bottom-1 -right-1 size-5 border-b-4 border-r-4 border-blue-400 rounded-br-lg" />
+                <div className="absolute -top-1 -left-1 size-4 border-t-4 border-l-4 border-blue-400 rounded-tl-lg" />
+                <div className="absolute -top-1 -right-1 size-4 border-t-4 border-r-4 border-blue-400 rounded-tr-lg" />
+                <div className="absolute -bottom-1 -left-1 size-4 border-b-4 border-l-4 border-blue-400 rounded-bl-lg" />
+                <div className="absolute -bottom-1 -right-1 size-4 border-b-4 border-r-4 border-blue-400 rounded-br-lg" />
 
                 {/* Animated Red Laser Scan Line */}
                 <div className="absolute inset-x-2 top-0 h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_12px_#ef4444] animate-bounce" />
 
-                <div className="absolute bottom-2 inset-x-0 text-center">
-                  <span className="rounded-md bg-black/70 backdrop-blur-sm px-2.5 py-0.5 text-[10px] font-mono font-medium text-slate-200">
+                <div className="absolute bottom-1.5 inset-x-0 text-center">
+                  <span className="rounded-md bg-black/70 backdrop-blur-sm px-2 py-0.5 text-[9px] font-mono font-medium text-slate-200">
                     {scanCooldown ? "✓ Scanned!" : "Point camera at barcode"}
                   </span>
                 </div>
@@ -424,8 +434,8 @@ export function BarcodeScannerModal({
           </div>
         </div>
 
-        {/* Footer: Live Cart Count + Finish Button */}
-        <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-6 py-4">
+        {/* Footer: Live Cart Count + Finish/Close Buttons */}
+        <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/90 px-6 py-3.5 shrink-0">
           <div>
             <p className="text-xs text-slate-400">Current Bill Progress</p>
             <p className="text-sm font-bold text-slate-900">
@@ -433,13 +443,22 @@ export function BarcodeScannerModal({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 shadow-sm transition-colors"
-          >
-            Done & View Bill
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 shadow-xs transition-colors"
+            >
+              Close
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl bg-blue-600 px-5 py-2 text-xs font-bold text-white hover:bg-blue-700 shadow-sm transition-colors"
+            >
+              Done & View Bill
+            </button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
