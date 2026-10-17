@@ -7,7 +7,7 @@
     "gstin": "29ABCDE1234F1Z5",
     "invoicePrefix": "NX-",
     "invoiceFooter": "Thank you for shopping with us! Play hard, stay fit.",
-    "paperSize": "58mm",
+    "paperSize": "80mm",
     "defaultTax": 18,
     "taxInclusive": true,
     "theme": "light"
