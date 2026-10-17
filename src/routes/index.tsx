@@ -26,6 +26,7 @@ import { EmptyState, InvoiceModal, Receipt as ReceiptDoc, StockBadge, printConte
 import { BarcodeScannerModal } from "@/components/pos/BarcodeScannerModal";
 import { playScannerBeep } from "@/lib/scannerAudio";
 import {
+  DEFAULT_SPORTS_CATEGORIES,
   computeTotals,
   formatCurrency,
   getDB,
@@ -127,7 +128,10 @@ function BillingPage() {
   });
 
   const active = useMemo(() => products.filter((p) => p.active), [products]);
-  const categories = useMemo(() => ["All", ...Array.from(new Set(active.map((p) => p.category)))], [active]);
+  const categories = useMemo(() => {
+    const existing = Array.from(new Set(active.map((p) => p.category))).filter(Boolean);
+    return ["All", ...Array.from(new Set([...DEFAULT_SPORTS_CATEGORIES, ...existing]))];
+  }, [active]);
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();

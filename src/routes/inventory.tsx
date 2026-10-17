@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Barcode, EmptyState, PageHeader, Panel, StatCard, StockBadge, printLabels } from "@/components/pos/kit";
-import { formatCurrency, genBarcode, stockStatus, uid, update, useDB, type Product } from "@/lib/store";
+import { DEFAULT_SPORTS_CATEGORIES, formatCurrency, genBarcode, stockStatus, uid, update, useDB, type Product } from "@/lib/store";
 
 export const Route = createFileRoute("/inventory")({
   validateSearch: (s: Record<string, unknown>) => ({ q: typeof s["q"] === "string" ? s["q"] : undefined }),
@@ -37,7 +37,10 @@ function Inventory() {
   const [labelFor, setLabelFor] = useState<Product | null>(null);
 
   const active = products.filter((p) => p.active);
-  const cats = Array.from(new Set(products.map((p) => p.category)));
+  const cats = useMemo(() => {
+    const existing = products.map((p) => p.category).filter(Boolean);
+    return Array.from(new Set([...DEFAULT_SPORTS_CATEGORIES, ...existing]));
+  }, [products]);
   const rows = useMemo(() => products
     .filter((p) => (status === "inactive" ? !p.active : p.active))
     .filter((p) => cat === "All" || p.category === cat)
@@ -45,7 +48,7 @@ function Inventory() {
     .filter((p) => { const s = q.toLowerCase(); return !s || p.name.toLowerCase().includes(s) || p.sku.toLowerCase().includes(s) || p.barcode.includes(s); })
     .sort((a, b) => (a[sort.k] > b[sort.k] ? 1 : -1) * sort.dir), [products, q, cat, status, sort]);
 
-  const blank = (): Product => ({ id: "", name: "", sku: "", barcode: "", category: cats[0] ?? "", price: 0, cost: 0, tax: 18, stock: 0, lowStock: 5, active: true });
+  const blank = (): Product => ({ id: "", name: "", sku: "", barcode: "", category: "Cricket", price: 0, cost: 0, tax: 18, stock: 0, lowStock: 5, active: true });
   const th = (k: SortKey, label: string, cls = "") => (
     <th className={"px-4 py-3.5 " + cls}>
       <button
@@ -364,6 +367,7 @@ function ProductModal({ product, categories, onClose }: { product: Product; cate
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [labels, setLabels] = useState(1);
   const [confirm, setConfirm] = useState(false);
+  const [isCustomCat, setIsCustomCat] = useState(Boolean(product.category && !categories.includes(product.category)));
   const set = <K extends keyof Product>(k: K, v: Product[K]) => setF((x) => ({ ...x, [k]: v }));
 
   const save = () => {
@@ -401,8 +405,47 @@ function ProductModal({ product, categories, onClose }: { product: Product; cate
           <fieldset className="grid gap-3 sm:grid-cols-2"><legend className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">Basic info</legend>
             <div className="sm:col-span-2">{F({ id: "prod-name", label: "Name", k: "name" })}</div>
             {F({ id: "prod-sku", label: "SKU", k: "sku" })}
-            {F({ id: "prod-category", label: "Category", k: "category", list: "cat-list" })}
-            <datalist id="cat-list">{categories.map((c) => <option key={c} value={c} />)}</datalist>
+            <div>
+              <label htmlFor="prod-category" className="text-sm font-medium">Category</label>
+              <div className="relative mt-1">
+                <select
+                  id="prod-category"
+                  value={isCustomCat ? "__custom__" : f.category}
+                  onChange={(e) => {
+                    if (e.target.value === "__custom__") {
+                      setIsCustomCat(true);
+                      set("category", "");
+                    } else {
+                      setIsCustomCat(false);
+                      set("category", e.target.value);
+                    }
+                  }}
+                  className={field + " appearance-none pr-8"}
+                >
+                  <option value="" disabled>Select sports category…</option>
+                  {categories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                  <option value="__custom__">+ Add Custom Category…</option>
+                </select>
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▾</span>
+              </div>
+              {isCustomCat && (
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    placeholder="Enter custom category name…"
+                    value={f.category}
+                    onChange={(e) => set("category", e.target.value)}
+                    className={field}
+                    autoFocus
+                  />
+                </div>
+              )}
+              {errors["category"] && <p id="prod-category-err" className="mt-1 text-xs text-destructive">{errors["category"]}</p>}
+            </div>
           </fieldset>
           <fieldset className="grid gap-3 sm:grid-cols-3"><legend className="mb-2 text-xs font-bold uppercase tracking-wide text-primary">Pricing & tax</legend>
             {F({ id: "prod-price", label: "Selling price (₹)", k: "price", type: "number" })}

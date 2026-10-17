@@ -25,6 +25,25 @@ export type DB = { products: Product[]; customers: Customer[]; sales: Sale[]; se
 export const uid = () => Math.random().toString(36).slice(2, 10);
 export const genBarcode = () => "89" + Array.from({ length: 10 }, () => Math.floor(Math.random() * 10)).join("");
 
+export const DEFAULT_SPORTS_CATEGORIES = [
+  "Cricket",
+  "Badminton",
+  "Football",
+  "Fitness & Gym",
+  "Tennis",
+  "Table Tennis",
+  "Basketball",
+  "Volleyball",
+  "Running & Athletics",
+  "Swimming",
+  "Skating & Cycles",
+  "Sportswear & Apparel",
+  "Sports Footwear",
+  "Sports Accessories",
+  "Trophies & Medals",
+  "Indoor Games",
+] as const;
+
 const P = (name: string, category: string, price: number, cost: number, stock: number, i: number): Product => ({
   id: "p" + i, name, category, price, cost, stock, tax: 18, lowStock: 5, active: true,
   sku: category.slice(0, 3).toUpperCase() + "-" + String(100 + i), barcode: "8901000" + String(10000 + i),
