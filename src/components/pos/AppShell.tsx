@@ -36,11 +36,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const settings = useDB((d) => d.settings);
   const status = useSaveStatus();
-  const [q, setQ] = useState("");
+  const [timeStr, setTimeStr] = useState("");
+  const [dateStr, setDateStr] = useState("");
 
   useEffect(() => {
     initStore();
+    const updateTime = () => {
+      const now = new Date();
+      setTimeStr(now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+      setDateStr(now.toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" }));
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
   }, []);
+
   useEffect(() => {
     document.documentElement.dataset["theme"] = settings.theme;
   }, [settings.theme]);
@@ -68,32 +78,71 @@ export function AppShell({ children }: { children: ReactNode }) {
       settings: { ...d.settings, theme: d.settings.theme === "dark" ? "light" : "dark" },
     }));
 
+  const handleQuickNewBill = () => {
+    window.dispatchEvent(new Event("pos:new-bill"));
+    if (path !== "/") navigate({ to: "/" });
+  };
+
   return (
-    <div className="min-h-screen bg-[#f3f5f9] p-2 sm:p-4 md:p-6 lg:p-8 font-sans text-slate-800 antialiased selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-screen bg-[#f1f5f9] dark:bg-[#090d16] p-1.5 sm:p-3 md:p-5 font-sans text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-100 selection:text-blue-900">
       {/* Floating Main Application Card */}
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-4rem)] max-w-[1720px] flex-col rounded-2xl md:rounded-[32px] border border-slate-200/80 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.03)] overflow-hidden">
+      <div className="mx-auto flex min-h-[calc(100vh-1rem)] md:min-h-[calc(100vh-2.5rem)] max-w-[1780px] flex-col rounded-2xl md:rounded-[28px] border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#0f172a] shadow-[0_12px_40px_rgb(0,0,0,0.04)] dark:shadow-[0_12px_40px_rgb(0,0,0,0.4)] overflow-hidden">
         
-        {/* Top Header Row with Logo & Controls */}
-        <header className="flex h-16 sm:h-20 items-center justify-between border-b border-slate-100 px-4 sm:px-8">
-          <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-90">
-            {/* Quixotic POS Logo Icon */}
-            <div className="grid size-9 place-items-center rounded-xl bg-blue-50 text-blue-600 border border-blue-200/80 shadow-sm shadow-blue-500/10">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="18" height="18" x="3" y="3" rx="5" />
-                <path d="M7 10h10" />
-                <path d="M7 14h5" />
-                <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor" />
-              </svg>
+        {/* Top Header Row with Logo & POS Workstation Controls */}
+        <header className="flex h-16 sm:h-20 items-center justify-between border-b border-slate-100 dark:border-slate-800/80 px-4 sm:px-6 md:px-8 bg-white/95 dark:bg-[#0f172a]/95 backdrop-blur-md">
+          {/* Logo & Terminal Info */}
+          <div className="flex items-center gap-3 sm:gap-4">
+            <Link to="/" className="flex items-center gap-3 transition-transform hover:scale-[1.01]">
+              <div className="grid size-10 place-items-center rounded-xl bg-blue-600 text-white shadow-md shadow-blue-500/20 font-bold">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="18" height="18" x="3" y="3" rx="5" />
+                  <path d="M7 10h10" />
+                  <path d="M7 14h5" />
+                  <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-black tracking-tight text-slate-950 dark:text-white uppercase">{settings.shopName || "NEXUS SPORTS"}</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                    <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Terminal #1
+                  </span>
+                </div>
+                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 hidden sm:block">
+                  Enterprise Retail POS & GST Billing System
+                </p>
+              </div>
+            </Link>
+          </div>
+
+          {/* Center Workstation Live Clock & Session Info */}
+          <div className="hidden lg:flex items-center gap-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 px-4 py-1.5 shadow-sm">
+            <div className="text-right">
+              <p className="font-mono text-sm font-extrabold text-slate-900 dark:text-slate-100 tracking-tight">{timeStr || "--:--:--"}</p>
+              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">{dateStr || "Today"}</p>
             </div>
-            <div>
-              <span className="text-lg font-bold tracking-tight text-blue-600">Quixotic POS</span>
-              <span className="ml-2 hidden text-xs font-medium text-slate-400 sm:inline">· {settings.shopName || "Sports Pro"}</span>
+            <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+              <span className="size-2 rounded-full bg-blue-500"></span>
+              <span>Cash Register: <b>Open</b></span>
             </div>
-          </Link>
+          </div>
 
           {/* Quick Header Actions */}
-          <div className="flex items-center gap-2 sm:gap-4">
-            <span aria-live="polite" className="hidden items-center gap-1.5 text-xs font-medium text-slate-400 sm:flex">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Quick New Bill Button */}
+            <button
+              onClick={handleQuickNewBill}
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 text-xs font-bold shadow-sm shadow-blue-500/20 transition-all active:scale-95"
+              title="Start a new bill (Ctrl+B)"
+            >
+              <span>+ New Bill</span>
+              <kbd className="hidden md:inline rounded bg-blue-700 px-1.5 py-0.5 font-mono text-[9px] font-semibold text-blue-100">Ctrl+B</kbd>
+            </button>
+
+            {/* Sync Status */}
+            <span aria-live="polite" className="hidden sm:flex items-center gap-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700">
               {status === "saving" ? (
                 <>
                   <Loader2 className="size-3.5 animate-spin text-blue-500" aria-hidden />
@@ -104,25 +153,31 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <CheckCircle2 className="size-3.5 text-emerald-500" aria-hidden />
                   Synced
                 </>
-              ) : null}
+              ) : (
+                <>
+                  <span className="size-1.5 rounded-full bg-emerald-500"></span>
+                  Ready
+                </>
+              )}
             </span>
 
+            {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
               aria-label="Toggle theme"
-              className="grid size-10 place-items-center rounded-xl border border-slate-200/70 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors"
+              className="grid size-10 place-items-center rounded-xl border border-slate-200/80 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors shadow-sm"
             >
-              {settings.theme === "dark" ? <Sun className="size-4.5" /> : <Moon className="size-4.5" />}
+              {settings.theme === "dark" ? <Sun className="size-4.5 text-amber-400" /> : <Moon className="size-4.5 text-slate-600" />}
             </button>
           </div>
         </header>
 
         {/* Content Body: Left Icon Rail + Main View Area */}
         <div className="flex flex-1 min-h-0">
-          {/* Vertical Icon Rail */}
+          {/* Vertical Navigation Rail */}
           <aside
             aria-label="Sidebar navigation"
-            className="hidden md:flex w-20 shrink-0 flex-col items-center border-r border-slate-100 py-6"
+            className="hidden md:flex w-20 shrink-0 flex-col items-center border-r border-slate-100 dark:border-slate-800/80 py-5 bg-white/50 dark:bg-[#0f172a]/50"
           >
             <nav className="flex flex-col items-center gap-3 w-full px-3">
               {NAV.map((n) => {
@@ -136,13 +191,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                     className={cn(
                       "group relative grid size-12 place-items-center rounded-2xl transition-all duration-200",
                       active
-                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/35 ring-4 ring-blue-500/10"
-                        : "text-slate-400 hover:bg-slate-100/80 hover:text-slate-700"
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/35 ring-4 ring-blue-500/15"
+                        : "text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200"
                     )}
                   >
                     <n.icon className="size-5 transition-transform duration-150 group-hover:scale-105" aria-hidden />
                     {/* Tooltip */}
-                    <span className="pointer-events-none absolute left-full ml-3 z-50 hidden rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-md group-hover:block whitespace-nowrap">
+                    <span className="pointer-events-none absolute left-full ml-3 z-50 hidden rounded-xl bg-slate-900 dark:bg-slate-800 px-3 py-1.5 text-xs font-bold text-white shadow-xl group-hover:block whitespace-nowrap border border-slate-800 dark:border-slate-700">
                       {n.label}
                     </span>
                   </Link>

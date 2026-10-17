@@ -1,0 +1,19 @@
+{
+  "settings": {
+    "shopName": "Nexus Sports",
+    "address": "12 MG Road, Bengaluru, Karnataka 560001",
+    "phone": "080-4000-1234",
+    "email": "contact@nexussports.in",
+    "gstin": "29ABCDE1234F1Z5",
+    "invoicePrefix": "NX-",
+    "invoiceFooter": "Thank you for shopping with us! Play hard, stay fit.",
+    "paperSize": "58mm",
+    "defaultTax": 18,
+    "taxInclusive": true,
+    "theme": "light"
+  },
+  "products": [],
+  "customers": [],
+  "sales": [],
+  "movements": []
+}

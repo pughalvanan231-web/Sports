@@ -22,8 +22,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { EmptyState, Receipt as ReceiptDoc, StockBadge, printContent } from "@/components/pos/kit";
+import { EmptyState, InvoiceModal, Receipt as ReceiptDoc, StockBadge, printContent } from "@/components/pos/kit";
 import { BarcodeScannerModal } from "@/components/pos/BarcodeScannerModal";
 import { playScannerBeep } from "@/lib/scannerAudio";
 import {
@@ -104,6 +103,7 @@ function BillingPage() {
   const [cPhone, setCPhone] = useState(phone ?? "");
   const [discount, setDiscount] = useState(0);
   const [payment, setPayment] = useState<PaymentMethod>("Cash");
+  const [cashTendered, setCashTendered] = useState<number | "">("");
   const [done, setDone] = useState<Sale | null>(null);
 
   const searchRef = useRef<HTMLInputElement>(null);
@@ -333,6 +333,7 @@ function BillingPage() {
     setCPhone("");
     setDiscount(0);
     setPayment("Cash");
+    setCashTendered("");
     setDone(null);
     setLastScanned(null);
     setLastError(null);
@@ -1094,6 +1095,53 @@ function BillingPage() {
                   </div>
                 </div>
 
+                {/* Cash Tendered & Change Return Calculator */}
+                {payment === "Cash" && (
+                  <div className="rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-3 space-y-2 shadow-xs">
+                    <div className="flex items-center justify-between text-xs">
+                      <label htmlFor="cash-tendered-input" className="font-semibold text-slate-600 dark:text-slate-300">Cash Received (₹)</label>
+                      <input
+                        id="cash-tendered-input"
+                        type="number"
+                        min={0}
+                        value={cashTendered}
+                        onChange={(e) => setCashTendered(e.target.value === "" ? "" : Number(e.target.value))}
+                        placeholder={String(totals.total)}
+                        className="h-8 w-28 rounded-lg border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2.5 text-right text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setCashTendered(totals.total)}
+                        className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors"
+                      >
+                        Exact
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCashTendered(Math.ceil(totals.total / 500) * 500 || 500)}
+                        className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors"
+                      >
+                        ₹{Math.ceil(totals.total / 500) * 500 || 500}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCashTendered(Math.ceil(totals.total / 1000) * 1000 || 1000)}
+                        className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition-colors"
+                      >
+                        ₹{Math.ceil(totals.total / 1000) * 1000 || 1000}
+                      </button>
+                    </div>
+                    {typeof cashTendered === "number" && cashTendered >= totals.total && (
+                      <div className="flex items-center justify-between text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/80 dark:border-emerald-800/80 rounded-lg px-2.5 py-1.5">
+                        <span>Change to Return:</span>
+                        <span className="text-sm font-black">{formatCurrency(cashTendered - totals.total)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Primary Checkout Button */}
                 <button
                   id="btn-checkout"
@@ -1121,48 +1169,14 @@ function BillingPage() {
         cartTotal={totals.total}
       />
 
-      {/* Invoice Modal on Success */}
-      <Dialog
+      {/* Professional Tax Invoice & Receipt Modal on Checkout Success */}
+      <InvoiceModal
         open={!!done}
-        onOpenChange={(o) => {
-          if (!o) newBill();
-        }}
-      >
-        <DialogContent className="max-w-sm rounded-3xl p-6 text-center">
-          <DialogHeader className="items-center">
-            <div className="grid size-16 place-items-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100">
-              <CheckCircle2 className="size-9 stroke-[2.5]" aria-hidden />
-            </div>
-            <DialogTitle className="mt-3 text-xl font-extrabold text-slate-900">Payment Received</DialogTitle>
-            <DialogDescription className="text-xs text-slate-400">
-              Invoice <span className="font-bold text-slate-800">{done?.invoiceNo}</span> · {done?.payment}
-            </DialogDescription>
-          </DialogHeader>
-
-          <p className="my-3 text-4xl font-extrabold text-slate-900 tracking-tight">
-            {done && formatCurrency(done.total)}
-          </p>
-
-          <div className="grid grid-cols-2 gap-2.5 mt-2">
-            <Button
-              variant="outline"
-              className="h-11 rounded-xl font-semibold border-slate-200"
-              onClick={() => done && printContent(<ReceiptDoc sale={done} settings={settings} />)}
-            >
-              <Printer className="size-4 mr-1.5" />
-              Print
-            </Button>
-            <Button
-              className="h-11 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white"
-              onClick={newBill}
-              autoFocus
-            >
-              <Plus className="size-4 mr-1.5" />
-              New Bill
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        onClose={() => newBill()}
+        sale={done}
+        settings={settings}
+        onNewBill={newBill}
+      />
     </div>
   );
 }

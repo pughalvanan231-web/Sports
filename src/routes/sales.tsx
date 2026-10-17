@@ -34,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { EmptyState, PageHeader, Panel, Pill, Receipt as ReceiptDoc, StatCard, printContent } from "@/components/pos/kit";
+import { EmptyState, InvoiceModal, PageHeader, Panel, Pill, StatCard, printContent } from "@/components/pos/kit";
 import { deleteSale, formatCurrency, refundSale, useDB, type PaymentMethod, type Sale } from "@/lib/store";
 import { exportMasterPurchasesToExcel } from "@/lib/export";
 
@@ -402,39 +402,13 @@ function SalesPage() {
         )}
       </Panel>
 
-      {/* Invoice Receipt Modal */}
-      <Dialog open={!!viewSale} onOpenChange={(open) => !open && setViewSale(null)}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>Invoice {viewSale?.invoiceNo}</span>
-              {viewSale?.status === "refunded" && <Pill tone="danger">Refunded</Pill>}
-            </DialogTitle>
-          </DialogHeader>
-
-          {viewSale && (
-            <div className="space-y-4">
-              <div className="rounded-xl border bg-muted/20 p-4">
-                <ReceiptDoc sale={viewSale} settings={settings} />
-              </div>
-
-              <DialogFooter className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => printContent(<ReceiptDoc sale={viewSale} settings={settings} />)}
-                  className="gap-2"
-                >
-                  <Printer className="size-4" />
-                  Print receipt
-                </Button>
-                <Button onClick={() => setViewSale(null)}>
-                  Close
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Professional Tax Invoice & Receipt Modal */}
+      <InvoiceModal
+        open={!!viewSale}
+        onClose={() => setViewSale(null)}
+        sale={viewSale}
+        settings={settings}
+      />
 
       {/* Refund Confirmation Dialog */}
       <AlertDialog open={!!refundConfirm} onOpenChange={(open) => !open && setRefundConfirm(null)}>

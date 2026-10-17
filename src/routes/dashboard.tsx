@@ -27,8 +27,7 @@ import {
   YAxis,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { EmptyState, PageHeader, Panel, Pill, Receipt as ReceiptDoc, StatCard, StockBadge, printContent } from "@/components/pos/kit";
+import { EmptyState, InvoiceModal, PageHeader, Panel, Pill, StatCard, StockBadge, printContent } from "@/components/pos/kit";
 import { formatCurrency, stockStatus, useDB, type Sale } from "@/lib/store";
 
 export const Route = createFileRoute("/dashboard")({
@@ -385,32 +384,13 @@ function DashboardPage() {
         </Button>
       </div>
 
-      {/* Invoice Receipt Modal */}
-      <Dialog open={!!viewSale} onOpenChange={(open) => !open && setViewSale(null)}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Invoice {viewSale?.invoiceNo}</DialogTitle>
-          </DialogHeader>
-          {viewSale && (
-            <div className="space-y-4">
-              <div className="rounded-xl border bg-muted/20 p-4">
-                <ReceiptDoc sale={viewSale} settings={settings} />
-              </div>
-              <DialogFooter className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => printContent(<ReceiptDoc sale={viewSale} settings={settings} />)}
-                >
-                  Print receipt
-                </Button>
-                <Button onClick={() => setViewSale(null)}>
-                  Close
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Professional Tax Invoice & Receipt Modal */}
+      <InvoiceModal
+        open={!!viewSale}
+        onClose={() => setViewSale(null)}
+        sale={viewSale}
+        settings={settings}
+      />
     </div>
   );
 }

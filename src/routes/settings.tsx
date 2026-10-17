@@ -32,7 +32,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { PageHeader, Panel, Pill } from "@/components/pos/kit";
+import { PageHeader, Panel, Pill, Receipt, printContent } from "@/components/pos/kit";
 import {
   clearAllData,
   exportBackupJSON,
@@ -41,6 +41,7 @@ import {
   resetData,
   update,
   useDB,
+  type Sale,
   type Settings,
 } from "@/lib/store";
 import { exportCustomersToExcel, exportMasterPurchasesToExcel } from "@/lib/export";
@@ -73,6 +74,25 @@ function SettingsPage() {
   const [copiedTemplate, setCopiedTemplate] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
   const [clearConfirm, setClearConfirm] = useState(false);
+  const [previewFormat, setPreviewFormat] = useState<"58mm" | "80mm" | "A4">(settings.paperSize || "58mm");
+
+  const sampleSale: Sale = {
+    id: "sample-preview",
+    invoiceNo: `${form.invoicePrefix || "NX-"}1024`,
+    date: new Date().toISOString(),
+    customerName: "Priya Nair",
+    customerPhone: "9123456780",
+    items: [
+      { productId: "p6", name: "Yonex Astrox Badminton Racket", price: 3499, qty: 1, tax: form.defaultTax, cost: 2400 },
+      { productId: "p7", name: "Mavis 350 Shuttlecock (Tube of 6)", price: 899, qty: 2, tax: form.defaultTax, cost: 550 },
+    ],
+    subtotal: 5297,
+    discount: 200,
+    tax: 777.51,
+    total: 5097,
+    payment: "UPI",
+    status: "completed",
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,11 +303,16 @@ Default Tax Rate: ${form.defaultTax}%`;
               <select
                 id="s-paper"
                 value={form.paperSize}
-                onChange={(e) => setForm({ ...form, paperSize: e.target.value as "80mm" | "A4" })}
+                onChange={(e) => {
+                  const sz = e.target.value as "58mm" | "80mm" | "A4";
+                  setForm({ ...form, paperSize: sz });
+                  setPreviewFormat(sz);
+                }}
                 className={fieldClass}
               >
-                <option value="80mm">80mm Thermal Receipt (POS Roll)</option>
-                <option value="A4">A4 Full Sheet (Standard Desktop Printer)</option>
+                <option value="58mm">2-inch (58mm) Thermal POS (Standard Mini Receipt)</option>
+                <option value="80mm">3-inch (80mm) Thermal POS (Standard Roll)</option>
+                <option value="A4">A4 Full Sheet Tax Invoice (Desktop Printer)</option>
               </select>
             </div>
 
@@ -336,6 +361,65 @@ Default Tax Rate: ${form.defaultTax}%`;
           </div>
         </Panel>
 
+        {/* Live Bill Template Preview & Test Print */}
+        <Panel className="p-4 md:p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b">
+            <div className="flex items-center gap-2">
+              <FileText className="size-5 text-primary" />
+              <div>
+                <h3 className="text-base font-bold text-foreground">Live Bill & Invoice Preview</h3>
+                <p className="text-xs text-muted-foreground">Preview how your bill appears on paper with your current shop details</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-xl bg-muted p-1 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setPreviewFormat("58mm")}
+                  className={`rounded-lg px-2.5 py-1.5 transition-all ${
+                    previewFormat === "58mm" ? "bg-background text-primary shadow-xs" : "text-muted-foreground"
+                  }`}
+                >
+                  2-inch (58mm) POS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewFormat("80mm")}
+                  className={`rounded-lg px-2.5 py-1.5 transition-all ${
+                    previewFormat === "80mm" ? "bg-background text-primary shadow-xs" : "text-muted-foreground"
+                  }`}
+                >
+                  3-inch (80mm) POS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewFormat("A4")}
+                  className={`rounded-lg px-2.5 py-1.5 transition-all ${
+                    previewFormat === "A4" ? "bg-background text-primary shadow-xs" : "text-muted-foreground"
+                  }`}
+                >
+                  A4 Tax Invoice
+                </button>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => printContent(<Receipt sale={sampleSale} settings={form} size={previewFormat} />, previewFormat)}
+                className="gap-2 text-xs font-semibold h-9"
+              >
+                <Printer className="size-3.5" />
+                Test Print ({previewFormat})
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-xl border bg-muted/30 p-4 max-h-[500px] overflow-y-auto flex justify-center">
+            <Receipt sale={sampleSale} settings={form} size={previewFormat} />
+          </div>
+        </Panel>
+
         {/* Appearance & Theme */}
         <Panel className="p-4 md:p-6 space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b">
@@ -380,6 +464,57 @@ Default Tax Rate: ${form.defaultTax}%`;
         </div>
       </form>
 
+      {/* Automatic Persistence & Storage Status */}
+      <Panel className="p-4 md:p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b">
+          <div className="flex items-center gap-2.5">
+            <div className="grid size-9 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600 font-bold shadow-xs">
+              <Check className="size-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-foreground">Automatic Data Persistence</h3>
+              <p className="text-xs text-muted-foreground">
+                All bills, products, customers, and settings are saved automatically in real-time.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleExportBackup}
+              className="gap-2 text-xs font-semibold h-9"
+            >
+              <Download className="size-3.5 text-emerald-600" />
+              Download Backup (JSON)
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <div className="rounded-xl border bg-muted/30 p-3">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Total Products</p>
+            <p className="text-lg font-black text-foreground mt-0.5">{productsCount}</p>
+          </div>
+          <div className="rounded-xl border bg-muted/30 p-3">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Registered Customers</p>
+            <p className="text-lg font-black text-foreground mt-0.5">{customersCount}</p>
+          </div>
+          <div className="rounded-xl border bg-muted/30 p-3">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Sales Invoices</p>
+            <p className="text-lg font-black text-foreground mt-0.5">{salesCount}</p>
+          </div>
+          <div className="rounded-xl border bg-muted/30 p-3">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Storage Status</p>
+            <p className="text-xs font-bold text-emerald-600 mt-1 flex items-center justify-center gap-1">
+              <span className="size-1.5 rounded-full bg-emerald-500"></span>
+              Auto-Saving Active
+            </p>
+          </div>
+        </div>
+      </Panel>
+
       {/* Local Storage & Data Management Section */}
       <Panel className="p-4 md:p-6 space-y-5 border-dashed">
         <div className="flex items-center gap-2 pb-2 border-b">
@@ -387,7 +522,7 @@ Default Tax Rate: ${form.defaultTax}%`;
           <div>
             <h3 className="text-base font-bold text-foreground">Browser Local Storage & Backups</h3>
             <p className="text-xs text-muted-foreground">
-              For now, everything is saved directly in your browser on this device (HTML5 LocalStorage).
+              For offline resiliency, a synchronized snapshot is also kept in your browser storage.
             </p>
           </div>
         </div>

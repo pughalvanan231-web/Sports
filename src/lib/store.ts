@@ -16,7 +16,7 @@ export type Sale = {
 };
 export type Settings = {
   shopName: string; address: string; phone: string; email?: string; gstin: string;
-  invoicePrefix: string; invoiceFooter: string; paperSize: "80mm" | "A4";
+  invoicePrefix: string; invoiceFooter: string; paperSize: "58mm" | "80mm" | "A4";
   defaultTax: number; taxInclusive: boolean; theme: "light" | "dark";
 };
 export type Movement = { id: string; productId: string; qty: number; reason: string; date: string };
@@ -159,19 +159,31 @@ export const seedSettings: Settings = {
   gstin: "29ABCDE1234F1Z5",
   invoicePrefix: "NX-",
   invoiceFooter: "Thank you for shopping with us! Play hard, stay fit.",
-  paperSize: "80mm",
+  paperSize: "58mm",
   defaultTax: 18,
   taxInclusive: true,
   theme: "light",
 };
 
-export const seed: DB = {
-  products: seedProducts,
-  customers: seedCustomers,
-  sales: seedSales,
-  settings: seedSettings,
-  movements: [],
-};
+import { createServerFn } from "@tanstack/react-start";
+import projectDbJson from "@/data/db.json";
+
+export const seed: DB = projectDbJson as DB;
+
+export const saveDbToJsonFile = createServerFn({ method: "POST" })
+  .validator((d: unknown) => d as DB)
+  .handler(async ({ data }) => {
+    try {
+      const fs = await import("node:fs/promises");
+      const path = await import("node:path");
+      const targetPath = path.resolve(process.cwd(), "src/data/db.json");
+      await fs.writeFile(targetPath, JSON.stringify(data, null, 2), "utf-8");
+      return { ok: true, path: targetPath };
+    } catch (e) {
+      console.warn("Filesystem write skipped or unavailable:", e);
+      return { ok: false, error: String(e) };
+    }
+  });
 
 const KEY = "nexus-pos-db-v1";
 let state: DB = seed;
@@ -192,8 +204,12 @@ export function initStore() {
         ...parsed,
         settings: { ...seed.settings, ...(parsed.settings || {}) },
       };
+    } else {
+      state = { ...seed };
     }
-  } catch { /* ignore */ }
+  } catch {
+    state = { ...seed };
+  }
   emit();
 }
 
@@ -203,16 +219,30 @@ export function update(fn: (db: DB) => DB) {
   saveStatus = "saving";
   emit();
   clearTimeout(timer);
-  timer = setTimeout(() => {
+  timer = setTimeout(async () => {
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
     } catch { /* ignore */ }
+    try {
+      await saveDbToJsonFile({ data: state });
+    } catch { /* ignore in pure browser */ }
     saveStatus = "saved";
     emit();
-  }, 350);
+  }, 400);
 }
 
-export function resetData() { update(() => seed); }
+export function reloadFromProjectJson() {
+  try {
+    localStorage.removeItem(KEY);
+  } catch { /* ignore */ }
+  state = JSON.parse(JSON.stringify(projectDbJson)) as DB;
+  emit();
+}
+
+export function resetData() {
+  update(() => JSON.parse(JSON.stringify(projectDbJson)) as DB);
+}
+
 export function clearAllData() {
   update((d) => ({
     ...d,

@@ -38,7 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { EmptyState, PageHeader, Panel, Pill, Receipt as ReceiptDoc, StatCard, printContent } from "@/components/pos/kit";
+import { EmptyState, InvoiceModal, PageHeader, Panel, Pill, StatCard, printContent } from "@/components/pos/kit";
 import { formatCurrency, uid, update, useDB, type Customer, type Sale } from "@/lib/store";
 import { exportCustomersToExcel, exportCustomerPurchasesToExcel } from "@/lib/export";
 
@@ -667,33 +667,13 @@ function CustomersPage() {
       </Dialog>
 
       {/* Single Invoice Receipt Preview Modal */}
-      <Dialog open={!!viewSale} onOpenChange={(open) => !open && setViewSale(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Invoice Details</DialogTitle>
-          </DialogHeader>
-          {viewSale && (
-            <div className="space-y-4">
-              <div className="rounded-xl border bg-muted/20 p-4">
-                <ReceiptDoc sale={viewSale} settings={settings} />
-              </div>
-              <DialogFooter className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => printContent(<ReceiptDoc sale={viewSale} settings={settings} />)}
-                  className="gap-2"
-                >
-                  <Printer className="size-4" />
-                  Print receipt
-                </Button>
-                <Button onClick={() => setViewSale(null)}>
-                  Close
-                </Button>
-              </DialogFooter>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Professional Tax Invoice & Receipt Modal */}
+      <InvoiceModal
+        open={!!viewSale}
+        onClose={() => setViewSale(null)}
+        sale={viewSale}
+        settings={settings}
+      />
 
       {/* Delete Customer Alert Dialog */}
       <AlertDialog open={!!deleteCustomer} onOpenChange={(open) => !open && setDeleteCustomer(null)}>
