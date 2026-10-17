@@ -7,6 +7,7 @@ import {
   DollarSign,
   Home,
   Loader2,
+  Lock,
   Moon,
   Receipt,
   ScanBarcode,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { initStore, update, useDB, useSaveStatus } from "@/lib/store";
 import { PrintArea } from "./kit";
+import { PinLockModal, isSessionUnlocked, lockSession } from "./PinLockModal";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +40,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const status = useSaveStatus();
   const [timeStr, setTimeStr] = useState("");
   const [dateStr, setDateStr] = useState("");
+  const [isUnlocked, setIsUnlocked] = useState(false);
+
+  useEffect(() => {
+    setIsUnlocked(isSessionUnlocked());
+  }, []);
 
   useEffect(() => {
     initStore();
@@ -169,6 +176,20 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {settings.theme === "dark" ? <Sun className="size-4.5 text-amber-400" /> : <Moon className="size-4.5 text-slate-600" />}
             </button>
+
+            {/* Lock Terminal Button */}
+            <button
+              type="button"
+              onClick={() => {
+                lockSession();
+                setIsUnlocked(false);
+              }}
+              aria-label="Lock terminal"
+              title="Lock Terminal (Requires PIN 1020)"
+              className="grid size-10 place-items-center rounded-xl border border-slate-200/80 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm"
+            >
+              <Lock className="size-4" />
+            </button>
           </div>
         </header>
 
@@ -241,6 +262,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <PrintArea />
       <Toaster position="top-center" richColors />
+
+      {/* 4-Digit Security PIN Lock Overlay (PIN: 1020) */}
+      {!isUnlocked && (
+        <PinLockModal onUnlocked={() => setIsUnlocked(true)} />
+      )}
     </div>
   );
 }
