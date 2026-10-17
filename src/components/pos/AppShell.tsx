@@ -185,7 +185,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 setIsUnlocked(false);
               }}
               aria-label="Lock terminal"
-              title="Lock Terminal (Requires PIN 1020)"
+              title="Lock Terminal"
               className="grid size-10 place-items-center rounded-xl border border-slate-200/80 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:border-red-200 dark:hover:border-red-800 hover:text-red-600 dark:hover:text-red-400 transition-colors shadow-sm"
             >
               <Lock className="size-4" />

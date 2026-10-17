@@ -111,17 +111,14 @@ export function PinLockModal({
           })}
         </div>
 
-        {/* Error / Success / Hint text */}
+        {/* Error / Success text */}
         <div className="h-6 mb-4 text-xs font-semibold">
           {error ? (
             <span className="text-red-400">Incorrect PIN. Try again.</span>
           ) : isSuccess ? (
             <span className="text-emerald-400">PIN Verified! Unlocking...</span>
           ) : (
-            <span className="text-slate-400 flex items-center justify-center gap-1">
-              <KeyRound className="size-3.5 text-blue-400" />
-              <span>Default PIN: <b className="text-blue-400 font-mono">1020</b></span>
-            </span>
+            <span className="text-slate-500">Authorized Personnel Only</span>
           )}
         </div>
 
